@@ -23,11 +23,20 @@ static bool checking_glad_initalize_or_not()
 	return true;
 }
 
+
+// get da window going 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
 
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+}
 
 // get DA BALL ROLLINNNNNN
 int main()
@@ -69,8 +78,17 @@ int main()
 	// a way to not make window close immediately 
 	while (!glfwWindowShouldClose(window))
 	{
-		glfwSwapBuffers(window);
+		// input
+		processInput(window);
+
+		//probably will render here
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// check and call events and swap the buffers 
 		glfwPollEvents();
+		glfwSwapBuffers(window);
+		
 	}
 
 	// clean the allocated glfw resources. 

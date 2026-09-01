@@ -21,7 +21,7 @@ const char *vertexShaderSource = "#version 330 core\n"
 " gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 
-const char* fragmentShaderSource = R"(
+const char *fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColour;
 void main()
@@ -30,8 +30,10 @@ void main()
 }
 )";
 
+// Shader- Related Programs 
 unsigned int vertexShader; 
 unsigned int fragmentShader;
+unsigned int shaderProgram;
 
 float verticles[] = {
 	-0.5f, -0.5f, 0.0f,
@@ -44,6 +46,8 @@ unsigned int VBO; // vertex buffer objects
 int success;
 
 char infoLog[512];
+
+
 
 // checking glad works or nah basically
 static bool checking_glad_initalize_or_not()
@@ -64,6 +68,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+// respond to input "Escape"
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -112,7 +117,7 @@ int main()
 
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 
-
+	// check if complication is successful with glGetShaderiv. 
 	if (!success)
 	{
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
@@ -126,6 +131,37 @@ int main()
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
+
+	shaderProgram = glCreateProgram(); // Create a program and returns the ID reference. 
+
+	// LINKING THEM TOGETHAAAAA
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	
+	// thing go brr if no no work
+	if (!success)
+	{
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+	}
+
+	// basically telling OpenGL how to interpret the vertex data per vertex attribute 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	/*
+	* First parameter = specifies which vertex attribute we wanna configure.
+	* (we already specified the location of the position vertex attribute in the vertex shader with layout (location = 0))
+	* Set the location of the vertex attribute to 0, and since we want to pass data to this vertex attribute, we pass in 0
+	* Next argument specifies the size of the vertex attribute (vec3 = composed of 3 values)
+	* Third argument specifies the type of the data 
+	* Fourth argument = asking if we wanted the data to be normalized
+	* Fifth argument = the stride, and tell us the space between consecutive vertex attributes.
+	* Since next set of position data is located exactly 3 times the size of a float away we specify that value as a stride
+	* Last one = type void* = offset of where the position data begins in the buffer. 
+	* Since position data is at the start of the data array - value = 0.
+	*/
 
 	// a way to not make window close immediately 
 	while (!glfwWindowShouldClose(window))
@@ -145,7 +181,10 @@ int main()
 		
 	}
 
+
 	// clean the allocated glfw resources. 
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 	glfwTerminate();
 	return 0;
 

@@ -1,9 +1,10 @@
 /**Author's Name:          Ikamjot Hundal
  * Last Modified By:       Ikamjot Hundal
- * Date Last Modified:     August 27, 2026
+ * Date Last Modified:     September 04, 2026
  * Description:            Main file to display the graphics
  * ------------------------------------------------------------------------
  * Revision History: Changed the colour of Rendering and added variables. (August 27, 2026)
+ * Linked the both vertex and fragment shaders (August 31, 2026) 
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -41,8 +42,8 @@ float verticles[] = {
 	0.0f, 0.5f, 0.0f,
 };
 
-unsigned int VBO; // vertex buffer objects 
-
+unsigned int VBO; // vertex buffer object 
+unsigned int VAO; // vertex array object
 int success;
 
 char infoLog[512];
@@ -163,16 +164,37 @@ int main()
 	* Since position data is at the start of the data array - value = 0.
 	*/
 
+	glGenVertexArrays(1, &VAO);
+
+	// Bind Vertex Array Object 
+	glBindVertexArray(VAO);
+
+	// copy the vertices array in a buffer for OpenGL to use
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticles), verticles, GL_STATIC_DRAW);
+
+	// set the vertex attributes pointers 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	
+
 	// a way to not make window close immediately 
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		processInput(window);
 
-		//probably will render here
+		// probably will render background colour here
 		
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Draw da triangle 
+		glUseProgram(shaderProgram);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
 
 
 		// check and call events and swap the buffers 

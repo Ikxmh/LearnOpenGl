@@ -5,6 +5,7 @@
  * ------------------------------------------------------------------------
  * Revision History: Changed the colour of Rendering and added variables. (August 27, 2026)
  * Linked the both vertex and fragment shaders (August 31, 2026) 
+ * Drew an Triangle (September 04, 2026)
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

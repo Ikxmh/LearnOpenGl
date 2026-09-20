@@ -7,6 +7,7 @@
  * Linked the both vertex and fragment shaders (August 31, 2026) 
  * Drew an Triangle (September 04, 2026)
  * Drew an Rectangle  (September 10, 2026)
+ * Did the exercise 1 for the triangles (September 18, 2026)
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -40,11 +41,14 @@ unsigned int shaderProgram;
 
 float verticles[] = {
 	// first triangle
-	0.5f, 0.5f, 0.0f, // top right 
+	-0.5f, -0.5f, 0.0f, // bottom left
+	0.0f, -0.5f, 0.0f, // bottom right
+	-0.5f, 0.5f, 0.0f, // top center
+
+	// second triangle
+	0.0f, -0.5f, 0.0f, // bottom left 
 	0.5f, -0.5f, 0.0f, // bottom right
-	
-	-0.5f, -0.5f, 0.0f, // bottom left 
-	-0.5f, 0.5f, 0.0f, // top left
+	0.5f, 0.5f, 0.0f
 
 };
 
@@ -189,11 +193,12 @@ int main()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glGenBuffers(1, &EBO);
+	//glGenBuffers(1, &EBO);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+	
 	
 
 	// a way to not make window close immediately 
@@ -210,7 +215,9 @@ int main()
 		// Draw da triangle 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		glBindVertexArray(0);
 
 

@@ -8,6 +8,7 @@
  * Drew an Triangle (September 04, 2026)
  * Drew an Rectangle  (September 10, 2026)
  * Did the exercise 1 for the triangles (September 18, 2026)
+ * Doing the second excercise 2 for the triangle (September 27, 2026)
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -52,13 +53,28 @@ float verticles[] = {
 
 };
 
+float firstTriangle[] = {
+	// first triangle
+	-0.5f, -0.5f, 0.0f, // bottom left
+	0.0f, -0.5f, 0.0f, // bottom right
+	-0.5f, 0.5f, 0.0f, // top center
+
+};
+
+float secondTriangle[] = {
+	// second triangle
+	0.0f, -0.5f, 0.0f, // bottom left 
+	0.5f, -0.5f, 0.0f, // bottom right
+	0.5f, 0.5f, 0.0f
+};
+
 unsigned int indices[] = { // start from 0
 	0, 1, 3, // first triangle 
 	1, 2, 3 // second triangle 
 };
 
-unsigned int VBO; // vertex buffer object 
-unsigned int VAO; // vertex array object
+unsigned int VBO[2]; // vertex buffer object 
+unsigned int VAO[2]; // vertex array object
 unsigned int EBO; // element buffer object
 int success;
 
@@ -141,10 +157,6 @@ int main()
 		cout << "error::shader::vertex::compilation_failed\n" << infoLog << endl;
 	}
 
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticles), verticles, GL_STATIC_DRAW);
-
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
@@ -162,7 +174,18 @@ int main()
 	if (!success)
 	{
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		cout << "error::shader::program::linking_failed" << infoLog << endl;
 	}
+
+
+	// linking two VBO and VAO at once.
+	glGenBuffers(2, VBO);
+	glGenVertexArrays(2, VAO);
+
+	// Bind Vertex Array Object for the first triangle 
+	glBindVertexArray(VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW);
 
 	// basically telling OpenGL how to interpret the vertex data per vertex attribute 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -180,14 +203,12 @@ int main()
 	* Since position data is at the start of the data array - value = 0.
 	*/
 
-	glGenVertexArrays(1, &VAO);
 
-	// Bind Vertex Array Object 
-	glBindVertexArray(VAO);
 
-	// copy the vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticles), verticles, GL_STATIC_DRAW);
+	// same thing for the second triangle 
+	glBindVertexArray(VAO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
 
 	// set the vertex attributes pointers 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -214,13 +235,15 @@ int main()
 
 		// Draw da triangle 
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
+		
+		// first triangle
+		glBindVertexArray(VAO[0]);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glBindVertexArray(0);
-
-
+		// second triangle 
+		glBindVertexArray(VAO[1]);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		// check and call events and swap the buffers 
 		glfwPollEvents();
@@ -230,6 +253,8 @@ int main()
 
 
 	// clean the allocated glfw resources. 
+	glDeleteVertexArrays(2, VAO);
+	glDeleteBuffers(2, VBO);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glfwTerminate();

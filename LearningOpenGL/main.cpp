@@ -26,7 +26,18 @@ const char *vertexShaderSource = "#version 330 core\n"
 " gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 
+// for the new colour
 const char *fragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColour;
+void main()
+{
+	FragColour = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+}
+)";
+
+ 
+const char *secondFragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColour;
 void main()
@@ -35,12 +46,15 @@ void main()
 }
 )";
 
+
 // Shader- Related Programs 
 unsigned int vertexShader; 
 unsigned int fragmentShader;
+unsigned int secondFragmentShader;
 unsigned int shaderProgram;
+unsigned int secondShaderProgram;
 
-float verticles[] = {
+float vertices[] = {
 	// first triangle
 	-0.5f, -0.5f, 0.0f, // bottom left
 	0.0f, -0.5f, 0.0f, // bottom right
@@ -161,6 +175,7 @@ int main()
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
 
+	
 	shaderProgram = glCreateProgram(); // Create a program and returns the ID reference. 
 
 	// LINKING THEM TOGETHAAAAA
@@ -170,10 +185,29 @@ int main()
 
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 	
+	secondFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(secondFragmentShader, 1, &secondFragmentShaderSource, NULL);
+	glCompileShader(secondFragmentShader);
+
+
+
+	// for the second colour 
+
+	secondShaderProgram = glCreateProgram();
+
+	glAttachShader(secondShaderProgram, vertexShader);
+	glAttachShader(secondShaderProgram, secondFragmentShader);
+	glLinkProgram(secondShaderProgram);
+
+	glGetProgramiv(secondShaderProgram, GL_LINK_STATUS, &success);
+
+	
+	
 	// thing go brr if no no work
 	if (!success)
 	{
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		glGetProgramInfoLog(secondShaderProgram, 512, NULL, infoLog);
 		cout << "error::shader::program::linking_failed" << infoLog << endl;
 	}
 
@@ -235,13 +269,14 @@ int main()
 
 		// Draw da triangle 
 		glUseProgram(shaderProgram);
-		
 		// first triangle
 		glBindVertexArray(VAO[0]);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		// second triangle 
+
+		glUseProgram(secondShaderProgram);
 		glBindVertexArray(VAO[1]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 

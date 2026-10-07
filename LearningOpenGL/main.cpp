@@ -21,31 +21,24 @@ using namespace std;
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
+"out vec4 vertexColor;\n"
 "void main()\n"
 "{\n"
-" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+" gl_Position = vec4(aPos, 1.0);\n"
+" vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f);\n"
 "}\0";
 
 // for the new colour
 const char *fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColour;
+
+in vec4 vertexColor;
 void main()
 {
-	FragColour = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+	FragColour = vertexColor;
 }
 )";
-
- 
-const char *secondFragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColour;
-void main()
-{
-	FragColour = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-}
-)";
-
 
 // Shader- Related Programs 
 unsigned int vertexShader; 

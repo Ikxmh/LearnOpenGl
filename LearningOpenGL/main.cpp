@@ -50,36 +50,13 @@ void main()
 // Shader- Related Programs 
 unsigned int vertexShader; 
 unsigned int fragmentShader;
-unsigned int secondFragmentShader;
 unsigned int shaderProgram;
-unsigned int secondShaderProgram;
 
 float vertices[] = {
-	// first triangle
-	-0.5f, -0.5f, 0.0f, // bottom left
-	0.0f, -0.5f, 0.0f, // bottom right
-	-0.5f, 0.5f, 0.0f, // top center
-
-	// second triangle
-	0.0f, -0.5f, 0.0f, // bottom left 
-	0.5f, -0.5f, 0.0f, // bottom right
-	0.5f, 0.5f, 0.0f
-
-};
-
-float firstTriangle[] = {
-	// first triangle
-	-0.5f, -0.5f, 0.0f, // bottom left
-	0.0f, -0.5f, 0.0f, // bottom right
-	-0.5f, 0.5f, 0.0f, // top center
-
-};
-
-float secondTriangle[] = {
-	// second triangle
-	0.0f, -0.5f, 0.0f, // bottom left 
-	0.5f, -0.5f, 0.0f, // bottom right
-	0.5f, 0.5f, 0.0f
+	0.5f, 0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	-0.5f, -0.5f, 0.0f,
+	-0.5f, 0.5f, 0.0f
 };
 
 unsigned int indices[] = { // start from 0
@@ -87,8 +64,8 @@ unsigned int indices[] = { // start from 0
 	1, 2, 3 // second triangle 
 };
 
-unsigned int VBO[2]; // vertex buffer object 
-unsigned int VAO[2]; // vertex array object
+unsigned int VBO; // vertex buffer object 
+unsigned int VAO; // vertex array object
 unsigned int EBO; // element buffer object
 int success;
 
@@ -184,42 +161,28 @@ int main()
 	glLinkProgram(shaderProgram);
 
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	
-	secondFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(secondFragmentShader, 1, &secondFragmentShaderSource, NULL);
-	glCompileShader(secondFragmentShader);
-
-
-
-	// for the second colour 
-
-	secondShaderProgram = glCreateProgram();
-
-	glAttachShader(secondShaderProgram, vertexShader);
-	glAttachShader(secondShaderProgram, secondFragmentShader);
-	glLinkProgram(secondShaderProgram);
-
-	glGetProgramiv(secondShaderProgram, GL_LINK_STATUS, &success);
-
-	
-	
+		
 	// thing go brr if no no work
 	if (!success)
 	{
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		glGetProgramInfoLog(secondShaderProgram, 512, NULL, infoLog);
 		cout << "error::shader::program::linking_failed" << infoLog << endl;
 	}
 
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 
-	// linking two VBO and VAO at once.
-	glGenBuffers(2, VBO);
-	glGenVertexArrays(2, VAO);
+ 
+	glBindVertexArray(VAO);
 
-	// Bind Vertex Array Object for the first triangle 
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// basically telling OpenGL how to interpret the vertex data per vertex attribute 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -229,29 +192,14 @@ int main()
 	* (we already specified the location of the position vertex attribute in the vertex shader with layout (location = 0))
 	* Set the location of the vertex attribute to 0, and since we want to pass data to this vertex attribute, we pass in 0
 	* Next argument specifies the size of the vertex attribute (vec3 = composed of 3 values)
-	* Third argument specifies the type of the data 
+	* Third argument specifies the type of the data
 	* Fourth argument = asking if we wanted the data to be normalized
 	* Fifth argument = the stride, and tell us the space between consecutive vertex attributes.
 	* Since next set of position data is located exactly 3 times the size of a float away we specify that value as a stride
-	* Last one = type void* = offset of where the position data begins in the buffer. 
+	* Last one = type void* = offset of where the position data begins in the buffer.
 	* Since position data is at the start of the data array - value = 0.
 	*/
 
-
-
-	// same thing for the second triangle 
-	glBindVertexArray(VAO[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
-
-	// set the vertex attributes pointers 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	//glGenBuffers(1, &EBO);
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	
 	
@@ -267,18 +215,14 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Draw da triangle 
+		// da rectangle shader 
 		glUseProgram(shaderProgram);
-		// first triangle
-		glBindVertexArray(VAO[0]);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		// da rectangle 
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
-		// second triangle 
-
-		glUseProgram(secondShaderProgram);
-		glBindVertexArray(VAO[1]);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		
 
 		// check and call events and swap the buffers 
 		glfwPollEvents();
@@ -288,8 +232,6 @@ int main()
 
 
 	// clean the allocated glfw resources. 
-	glDeleteVertexArrays(2, VAO);
-	glDeleteBuffers(2, VBO);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glfwTerminate();

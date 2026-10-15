@@ -33,17 +33,18 @@ const char *fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColour;
 
-in vec4 vertexColor;
+uniform vec4 ourColor;
 void main()
 {
-	FragColour = vertexColor;
+	FragColour = ourColor;
 }
 )";
 
-// Shader- Related Programs 
+// Shader-related Programs 
 unsigned int vertexShader; 
 unsigned int fragmentShader;
 unsigned int shaderProgram;
+
 
 float vertices[] = {
 	0.5f, 0.5f, 0.0f,
@@ -210,10 +211,18 @@ int main()
 
 		// da rectangle shader 
 		glUseProgram(shaderProgram);
+
+		// colour related shader for gradually changing colour overtime
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
 		// da rectangle 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		//glBindVertexArray(0);
 
 		
 

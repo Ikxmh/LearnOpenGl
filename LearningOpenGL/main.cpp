@@ -13,7 +13,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-
+#include "shader.h"
 using namespace std;
 
 
@@ -21,11 +21,12 @@ using namespace std;
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
-"out vec4 vertexColor;\n"
+"layout (location = 1) in vec3 aColour;\n"
+"out vec3 ourColour;\n"
 "void main()\n"
 "{\n"
 " gl_Position = vec4(aPos, 1.0);\n"
-" vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f);\n"
+" ourColour = aColour;\n"
 "}\0";
 
 // for the new colour
@@ -33,10 +34,10 @@ const char *fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColour;
 
-uniform vec4 ourColor;
+in vec3 ourColour;
 void main()
 {
-	FragColour = ourColor;
+	FragColour = vec4(ourColour, 1.0);
 }
 )";
 
@@ -47,10 +48,10 @@ unsigned int shaderProgram;
 
 
 float vertices[] = {
-	0.5f, 0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f
+	// positions --- colours
+	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top
+	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // right
+	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f // left
 };
 
 unsigned int indices[] = { // start from 0
@@ -179,7 +180,7 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// basically telling OpenGL how to interpret the vertex data per vertex attribute 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	/*
 	* First parameter = specifies which vertex attribute we wanna configure.
@@ -194,13 +195,18 @@ int main()
 	* Since position data is at the start of the data array - value = 0.
 	*/
 
-
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 	
-	
+	Shader ourShader("shader/shader.vs", "shaders/shader.fs");
 
 	// a way to not make window close immediately 
 	while (!glfwWindowShouldClose(window))
 	{
+
+		ourShader.use();
+		ourShader.setFloat("someUniform", 1.0f);
+
 		// input
 		processInput(window);
 

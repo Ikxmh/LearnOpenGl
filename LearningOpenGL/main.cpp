@@ -23,11 +23,14 @@ using namespace std;
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec3 aColour;\n"
+"layout (location = 2) in vec2 aTexCoord;\n"
 "out vec3 ourColour;\n"
+"out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
 " gl_Position = vec4(aPos, 1.0);\n"
 " ourColour = aColour;\n"
+" TexCoord = aTexCoord;\n"
 "}\0";
 
 // for the new colour
@@ -36,9 +39,13 @@ const char *fragmentShaderSource = R"(
 out vec4 FragColour;
 
 in vec3 ourColour;
+in vec2 TexCoord;
+
+uniform sampler2D ourTexture;
+
 void main()
 {
-	FragColour = vec4(ourColour, 1.0);
+	FragColour = texture(ourTexture, TexCoord) * vec4(ourColour, 1.0);
 }
 )";
 
@@ -49,9 +56,10 @@ unsigned int shaderProgram;
 
 float vertices[] = {
 	// positions --- colours
-	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top
-	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // right
-	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f // left
+	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+	-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
 };
 
 unsigned int indices[] = { // start from 0
@@ -180,8 +188,15 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// basically telling OpenGL how to interpret the vertex data per vertex attribute 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 	/*
 	* First parameter = specifies which vertex attribute we wanna configure.
 	* (we already specified the location of the position vertex attribute in the vertex shader with layout (location = 0))
@@ -195,19 +210,36 @@ int main()
 	* Since position data is at the start of the data array - value = 0.
 	*/
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 	
 	Shader ourShader("shader/shader.vs", "shaders/shader.fs");
+
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// stb_image library stuff
 	int width, height, nrChannels;
 
 	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		cout << "Failed to load texture" << endl;
+	}
+	stbi_image_free(data);
+
+
 
 	// a way to not make window close immediately 
 	while (!glfwWindowShouldClose(window))
@@ -228,13 +260,14 @@ int main()
 		glUseProgram(shaderProgram);
 
 		// colour related shader for gradually changing colour overtime
-		float timeValue = glfwGetTime();
-		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		double timeValue = glfwGetTime();
+		float greenValue = (float)(sin(timeValue) / 2.0f) + 0.5f;
 		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 
 		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 		// da rectangle 
+		glBindTexture(GL_TEXTURE_2D, texture);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		//glBindVertexArray(0);

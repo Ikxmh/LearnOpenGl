@@ -14,6 +14,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "shader.h"
+#include "stb_image.h"
 using namespace std;
 
 
@@ -45,7 +46,6 @@ void main()
 unsigned int vertexShader; 
 unsigned int fragmentShader;
 unsigned int shaderProgram;
-
 
 float vertices[] = {
 	// positions --- colours
@@ -199,6 +199,15 @@ int main()
 	glEnableVertexAttribArray(1);
 	
 	Shader ourShader("shader/shader.vs", "shaders/shader.fs");
+
+	// stb_image library stuff
+	int width, height, nrChannels;
+
+	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 
 	// a way to not make window close immediately 
 	while (!glfwWindowShouldClose(window))
